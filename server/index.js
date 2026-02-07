@@ -36,7 +36,8 @@ const upload = multer({ storage: storage });
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "*",
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-user-id"],
     credentials: true,
   })
 );
@@ -65,7 +66,8 @@ app.use("/uploads", express.static(path.join("uploads")));
 const io = new SocketIOServer(httpServer, {
   cors: {
     origin: process.env.CLIENT_URL || "*",
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-user-id"],
     credentials: true,
   },
 });
