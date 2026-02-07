@@ -7,6 +7,10 @@ dotenv.config();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  console.warn("Email credentials missing: EMAIL_USER/EMAIL_PASS not set");
+}
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -85,36 +89,39 @@ export const verifyPayment = async (req, res) => {
       
       console.log("User updated:", updatedUser.email, updatedUser.plan);
 
-      // 4. Send Invoice Email (Only happens if we passed the check above)
-      try {
-        const mailOptions = {
-          from: process.env.EMAIL_USER,
-          to: updatedUser.email,
-          subject: `Invoice: ${plan} Plan Upgrade Successful`,
-          html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px;">
-              <h1 style="color: #d32f2f;">Payment Successful</h1>
-              <p>Hello <strong>${updatedUser.name}</strong>,</p>
-              <p>Thank you for upgrading to the <strong>${plan} Plan</strong>.</p>
-              <hr />
-              <h3>Invoice Details</h3>
-              <p><strong>Plan:</strong> ${plan}</p>
-              <p><strong>Amount Paid:</strong> ₹${amount}</p>
-              <p><strong>Transaction ID:</strong> ${session.payment_intent}</p>
-              <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-              <hr />
-              <p>Enjoy your extended viewing experience!</p>
-            </div>
-          `,
-        };
+      // 4. Send Invoice Email (fire-and-forget so API doesn't hang)
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: updatedUser.email,
+        subject: `Invoice: ${plan} Plan Upgrade Successful`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h1 style="color: #d32f2f;">Payment Successful</h1>
+            <p>Hello <strong>${updatedUser.name}</strong>,</p>
+            <p>Thank you for upgrading to the <strong>${plan} Plan</strong>.</p>
+            <hr />
+            <h3>Invoice Details</h3>
+            <p><strong>Plan:</strong> ${plan}</p>
+            <p><strong>Amount Paid:</strong> INR ${amount}</p>
+            <p><strong>Transaction ID:</strong> ${session.payment_intent}</p>
+            <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+            <hr />
+            <p>Enjoy your extended viewing experience!</p>
+          </div>
+        `,
+      };
 
-        await transporter.sendMail(mailOptions);
-        console.log("Invoice email sent to:", updatedUser.email);
-      } catch (emailError) {
-        console.error("Email sending failed:", emailError);
-      }
+      console.log("Attempting to send invoice email to:", updatedUser.email);
+      transporter
+        .sendMail(mailOptions)
+        .then(() => {
+          console.log("Invoice email sent to:", updatedUser.email);
+        })
+        .catch((emailError) => {
+          console.error("Email sending failed:", emailError);
+        });
 
-      res.status(200).json({ message: "Payment verified and Plan updated", user: updatedUser });
+            res.status(200).json({ message: "Payment verified and Plan updated", user: updatedUser });
     } else {
       res.status(400).json({ message: "Payment not completed" });
     }
