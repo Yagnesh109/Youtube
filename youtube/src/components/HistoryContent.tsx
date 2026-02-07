@@ -11,6 +11,7 @@ import {
 import { Button } from "./ui/button";
 import { getVideoUrl } from "@/lib/videoUrl";
 import { useUser } from "@/lib/AuthContext";
+import axiosInstance from "@/lib/axiosinstance";
 
 const HistoryContent = () => {
   const { user } = useUser();
