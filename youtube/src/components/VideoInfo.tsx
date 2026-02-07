@@ -119,6 +119,7 @@ const VideoInfo = ({ video }: any) => {
         {
           headers,
           responseType: "blob",
+          timeout: 180000,
         }
       );
 

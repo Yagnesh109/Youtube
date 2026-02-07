@@ -2,11 +2,11 @@ import Link from "next/link";
 import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { formatDistanceToNow } from "date-fns";
-import axiosInstance from "@/lib/axiosinstance";
+import { getVideoUrl } from "@/lib/videoUrl";
 
 const Videocard = ({ video }: any) => {
   const src = video?.filepath
-    ? new URL(video.filepath, axiosInstance.defaults.baseURL).href
+    ? getVideoUrl(video)
     : "/video/vdo.mp4";
   return (
     <Link href={`/watches/${video._id}`} className="group">

@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
-import axiosInstance from "@/lib/axiosinstance";
+import { getVideoUrl } from "@/lib/videoUrl";
 import { useUser } from "@/lib/AuthContext";
 
 const HistoryContent = () => {
@@ -135,7 +135,7 @@ const HistoryContent = () => {
             >
               <div className="relative w-40 aspect-video bg-gray-100 rounded overflow-hidden">
                 <video
-                  src={item.videoid?.filepath ? new URL(item.videoid.filepath, axiosInstance.defaults.baseURL).href : "/video/vdo.mp4"}
+                  src={getVideoUrl(item.videoid)}
                   className="object-cover group-hover:scale-105 transition-transform duration-200"
                 />
               </div>

@@ -183,6 +183,70 @@ export const downloadVideo = async (req, res) => {
   }
 };
 
+export const streamVideo = async (req, res) => {
+  try {
+    const { videoId } = req.params;
+    const videoDoc = await video.findById(videoId);
+    if (!videoDoc) return res.status(404).json({ message: "Video not found" });
+
+    if (typeof videoDoc.filepath === "string" && videoDoc.filepath.startsWith("http")) {
+      return res.redirect(videoDoc.filepath);
+    }
+
+    const relativePath = typeof videoDoc.filepath === "string" ? videoDoc.filepath : "";
+    const absolutePath = path.isAbsolute(relativePath)
+      ? relativePath
+      : path.join(__dirname, "..", relativePath);
+
+    if (!relativePath || !fs.existsSync(absolutePath)) {
+      return res.status(404).json({ message: "Video file not found" });
+    }
+
+    const stat = fs.statSync(absolutePath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+    const contentType = videoDoc.filetype || "video/mp4";
+
+    if (range) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+      if (start >= fileSize) {
+        return res
+          .status(416)
+          .set("Content-Range", `bytes */${fileSize}`)
+          .end();
+      }
+
+      const chunkSize = end - start + 1;
+      res.status(206);
+      res.set({
+        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+        "Accept-Ranges": "bytes",
+        "Content-Length": chunkSize,
+        "Content-Type": contentType,
+      });
+
+      const stream = fs.createReadStream(absolutePath, { start, end });
+      return stream.pipe(res);
+    }
+
+    res.status(200);
+    res.set({
+      "Content-Length": fileSize,
+      "Content-Type": contentType,
+      "Accept-Ranges": "bytes",
+    });
+
+    const stream = fs.createReadStream(absolutePath);
+    return stream.pipe(res);
+  } catch (err) {
+    console.error("Stream video error:", err);
+    res.status(500).json({ message: "Failed to stream video" });
+  }
+};
+
 export const getDownloadedVideos = async (req, res) => {
   try {
     // req.user.id comes from verifyToken middleware

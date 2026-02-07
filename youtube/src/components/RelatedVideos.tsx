@@ -1,7 +1,7 @@
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import React from "react";
-import axiosInstance from "@/lib/axiosinstance";
+import { getVideoUrl } from "@/lib/videoUrl";
 
 const RelatedVideos = ({ video }: { video: any[] }) => {
   return (
@@ -9,7 +9,10 @@ const RelatedVideos = ({ video }: { video: any[] }) => {
       {video.map((video:any) => (
         <Link key={video._id} href={`/watches/${video._id}`} className="flex gap-2 group">
           <div className="relative w-40 aspect-video bg-muted dark:bg-muted rounded overflow-hidden flex-shrink-0">
-            <video className="object-cover group-hover:scale-105 transition-transform duration-200" src={video?.filepath ? new URL(video.filepath, axiosInstance.defaults.baseURL).href : "/video/vdo.mp4"}/>
+            <video
+              className="object-cover group-hover:scale-105 transition-transform duration-200"
+              src={getVideoUrl(video)}
+            />
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-medium text-sm line-clamp-2 text-foreground dark:text-foreground group-hover:text-primary dark:group-hover:text-primary">{video.videotitle}</h3>

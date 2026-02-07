@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import axiosInstance from '@/lib/axiosinstance';
+import { getVideoUrl } from '@/lib/videoUrl';
 import { useUser } from '@/lib/AuthContext';
 import PremiumModal from './PremiumModal';
 import { toast } from 'sonner';
@@ -30,10 +30,7 @@ const Videoplayer = ({ video, onCommentsToggle, onNextVideo, onClose, allVideos,
     // Progress tracking
     const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    const defaultSrc = "/video/vdo.mp4";
-    const src = video?.filepath
-      ? new URL(video.filepath, axiosInstance.defaults.baseURL).href
-      : defaultSrc;
+    const src = getVideoUrl(video);
 
     // Progress tracking functions
     const updateWatchedProgress = useCallback(() => {
