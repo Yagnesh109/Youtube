@@ -75,6 +75,7 @@ const VideoUploader = ({ channelId, channelName }: { channelId?: string; channel
         headers: {
           "Content-Type": undefined,
         },
+        timeout: 180000,
         onUploadProgress: (progressEvent: any) => {
           const progress = Math.round(
             (progressEvent.loaded * 100) / progressEvent.total
