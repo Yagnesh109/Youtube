@@ -96,10 +96,17 @@ export const verifyPayment = async (req, res) => {
     const session = await stripe.checkout.sessions.retrieve(session_id);
     
     if (session.payment_status === "paid") {
-      const { userId, plan, amount } = session.metadata;
+      const { userId, plan, amount } = session.metadata || {};
+      if (!userId || !plan) {
+        console.error("Missing session metadata:", session.metadata);
+        return res.status(400).json({ message: "Missing payment metadata" });
+      }
       
       // 1. Fetch current user state
       const currentUser = await users.findById(userId);
+      if (!currentUser) {
+        return res.status(404).json({ message: "User not found for payment" });
+      }
 
       // 2. IDEMPOTENCY CHECK: If user is already on this plan, DO NOT send email again
       if (currentUser.plan === plan && currentUser.isPremium === true) {
